@@ -1,0 +1,68 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model UserLoginData {
+  user_id         String   @id @default(uuid())
+  email           String   @unique
+  hashed_password String
+  jwt_token       String? // Optional JWT token storage
+  reset_token     String?
+  role_id     String?
+  role        Role?    @relation(fields: [role_id], references: [role_id])
+  isDelete  Boolean @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  profile         Profile?
+}
+
+model Profile {
+  profile_id String        @id @default(uuid())
+  user_id    String        @unique
+  user_cred  UserLoginData? @relation(fields: [user_id], references: [user_id])
+  firstname  String
+  lastname   String
+  email      String @unique
+  phone      String
+  dob        DateTime?
+  gender     String
+  isDelete Boolean @default(false)
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+}
+
+
+model Role {
+  role_id     String    @id @default(uuid())
+  name        String    @unique
+  permissions RolePermission[]
+  users       UserLoginData[]
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+}
+
+model Permission {
+  permission_id String    @id @default(uuid())
+  action        String    // e.g., 'read', 'write', 'delete'
+  resource      String    // e.g., 'user', 'post', 'profile'
+  roles         RolePermission[]
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+}
+
+model RolePermission {
+  id            String    @id @default(uuid())
+  role_id       String
+  permission_id String
+  role          Role      @relation(fields: [role_id], references: [role_id], onDelete: Cascade)
+  permission    Permission @relation(fields: [permission_id], references: [permission_id], onDelete: Cascade)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  @@unique([role_id, permission_id])
+ } // Prevent duplicate permissions for a role

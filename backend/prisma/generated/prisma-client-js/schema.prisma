@@ -1,0 +1,18 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma-client-js"
+}
+
+model UserLoginData {
+  user_id         String   @id @default(uuid())
+  email           String   @unique
+  hashed_password String
+  jwt_token       String? // Optional JWT token storage
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+}
